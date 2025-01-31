@@ -1,0 +1,23 @@
+{
+  "name": "letterboxd-profile-gen",
+  "version": "1.0.0",
+  "description": "Generates SVG files from Letterboxd profiles.",
+  "homepage": "https://github.com/PrideInt/letterboxd-profile-gen#readme",
+  "bugs": {
+    "url": "https://github.com/PrideInt/letterboxd-profile-gen/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PrideInt/letterboxd-profile-gen.git"
+  },
+  "license": "ISC",
+  "author": "Pride",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^1.7.9"
+  }
+}
