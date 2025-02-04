@@ -1,6 +1,7 @@
 const axios = require('axios');
 const fs = require('fs');
 const { createCanvas, loadImage } = require('canvas');
+require('dotenv').config();
 
 const getDiary = async () => {
     try {
@@ -141,7 +142,7 @@ const getTMDBPoster = async (title) => {
         const options = {
             method: 'GET',
             url: `https://api.themoviedb.org/3/search/movie?query=${title}`,
-            headers: { accept: 'application/json', Authorization: 'Bearer <secret>' }
+            headers: { accept: 'application/json', Authorization: 'Bearer ' + process.env.TMDB_API_KEY }
         };
         const response = await axios.request(options);
 
