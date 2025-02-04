@@ -1,4 +1,6 @@
 const axios = require('axios');
+const fs = require('fs');
+const { createCanvas, loadImage } = require('canvas');
 
 const getDiary = async () => {
     try {
@@ -8,10 +10,15 @@ const getDiary = async () => {
         console.error(error);
     }
 };
+
 const diary = getDiary().then((res) => {
     const result = JSON.parse(JSON.stringify(res));
 
+    const username = result.match(/<img src=".*?avatar.*?".*?>/g)[0].match(/(?<=alt=")(.*?)(?=")/g)[0];
+    const pfp = result.match(/(?<=<img src=")(.*?)(?=")/g).filter((avatar) => avatar.includes('avatar'))[0].replace('0-48-0-48', '0-220-0-220');
+
     const titles = result.match(/(?<=data-film-name=")(.*?)(?=")/g);
+    const years = result.match(/(?<=<td class="td-released center"><span>)(.*?)(?=<\/span>)/g);
 
     const slugs = result.match(/(?<=data-film-slug=")(.*?)(?=")/g);
     const ids = result.match(/(?<=data-film-id=")(.*?)(?=")/g);
@@ -32,7 +39,10 @@ const diary = getDiary().then((res) => {
     }
 
     const data = {
+        username: username,
+        pfp: pfp,
         titles: removeDuplicates(titles),
+        years: years,
         posters: removeDuplicates(posters),
         slugs: removeDuplicates(slugs),
     }
@@ -40,8 +50,61 @@ const diary = getDiary().then((res) => {
 });
 
 diary.then((res) => {
+    const username = res.username;
+    const pfp = res.pfp;
+    const titles = res.titles;
+
     validatePosters(res.slugs, res.posters).then((res_) => {
         // TODO: do whatever we want now
+        const canvas = createCanvas(700, 375);
+        const ctx = canvas.getContext('2d');
+
+        const recent = res_[0];
+        const recentTitle = titles[0] + ' (' + res.years[0] + ')';
+
+        ctx.font = 'bold 50px courier';
+        ctx.fillStyle = 'white';
+        ctx.fillText(username, 35, 50);
+
+        ctx.font = 'bold 20px courier';
+        ctx.fillStyle = 'white';
+        ctx.fillText('just recently watched: ', 35, 200);
+
+        ctx.font = 'bold 20px courier';
+        ctx.fillStyle = 'white';
+
+        let wrappedDegree = 0;
+
+        const words = recentTitle.split(' ');
+
+        let line = '';
+
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+
+            if (line.length + word.length <= 25) {
+                line += word + ' ';
+            } else {
+                ctx.fillText(line, 350, 65 + wrappedDegree * 25);
+                line = word + ' ';
+                wrappedDegree++;
+            }
+        }
+        ctx.fillText(line, 350, 65 + wrappedDegree * 25);
+
+        const posterY = 90 + (wrappedDegree * 25);
+
+        loadImage(pfp).then((pfpImage) => {
+            ctx.drawImage(pfpImage, 35, 65, 100, 100);
+
+            loadImage(recent).then((posterImage) => {
+                ctx.drawImage(posterImage, 350, posterY, 125, 187.5);
+
+                const buffer = canvas.toBuffer('image/png');
+                fs.writeFileSync('recent.png', buffer);
+            }).catch((err) => console.error(err));
+
+        }).catch((err) => console.error(err));
     });
 });
 
