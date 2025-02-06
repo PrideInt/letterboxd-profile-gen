@@ -1,6 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
-const { createCanvas, loadImage } = require('canvas');
+const { createCanvas, loadImage, registerFont } = require('canvas');
 require('dotenv').config();
 
 const getDiary = async () => {
@@ -55,6 +55,10 @@ diary.then((res) => {
     const pfp = res.pfp;
     const titles = res.titles;
 
+    registerFont('./public/fonts/CourierPrime-Bold.ttf', {
+        family: 'Courier',
+    });
+
     validatePosters(res.slugs, res.posters).then((res_) => {
         // TODO: do whatever we want now
         const canvas = createCanvas(700, 375);
@@ -63,37 +67,37 @@ diary.then((res) => {
         const recent = res_[0];
         const recentTitle = titles[0] + ' (' + res.years[0] + ')';
 
-        ctx.font = 'bold 50px courier';
+        ctx.font = 'bold 50px Courier';
         ctx.fillStyle = 'white';
         ctx.fillText(username, 35, 50);
 
-        ctx.font = 'bold 20px courier';
+        ctx.font = 'bold 20px Courier';
         ctx.fillStyle = 'white';
         ctx.fillText('just recently watched: ', 35, 200);
 
-        ctx.font = 'bold 20px courier';
+        ctx.font = 'bold 20px Courier';
         ctx.fillStyle = 'white';
 
         let wrappedDegree = 0;
 
         const words = recentTitle.split(' ');
 
-        let line = '';
+        let title = '';
 
         for (let i = 0; i < words.length; i++) {
             const word = words[i];
 
-            if (line.length + word.length <= 25) {
-                line += word + ' ';
+            if (title.length + word.length <= 25) {
+                title += word + ' ';
             } else {
-                ctx.fillText(line, 350, 65 + wrappedDegree * 25);
-                line = word + ' ';
+                ctx.fillText(title, 350, 75 + wrappedDegree * 25);
+                title = word + ' ';
                 wrappedDegree++;
             }
         }
-        ctx.fillText(line, 350, 65 + wrappedDegree * 25);
+        ctx.fillText(title, 350, 75 + wrappedDegree * 25);
 
-        const posterY = 90 + (wrappedDegree * 25);
+        const posterY = 95 + (wrappedDegree * 25);
 
         loadImage(pfp).then((pfpImage) => {
             ctx.drawImage(pfpImage, 35, 65, 100, 100);
