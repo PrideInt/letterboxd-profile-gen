@@ -68,15 +68,15 @@ diary.then((res) => {
         const recentTitle = titles[0] + ' (' + res.years[0] + ')';
 
         ctx.font = 'bold 50px Courier';
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = '#808080';
         ctx.fillText(username, 35, 50);
 
         ctx.font = 'bold 20px Courier';
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = '#808080';
         ctx.fillText('just recently watched: ', 35, 200);
 
         ctx.font = 'bold 20px Courier';
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = '#808080';
 
         let wrappedDegree = 0;
 
