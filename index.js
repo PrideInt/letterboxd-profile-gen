@@ -20,6 +20,7 @@ const diary = getDiary().then((res) => {
 
     const titles = result.match(/(?<=data-film-name=")(.*?)(?=")/g);
     const years = result.match(/(?<=<td class="td-released center"><span>)(.*?)(?=<\/span>)/g);
+    const ratings = result.match(/(?<=class="rating rated-)(.*?)(?=<\/span>)/g).map((rating) => rating.replace(rating.substring(0, rating.indexOf(' ')), '').replace(' ', ''));
 
     const slugs = result.match(/(?<=data-film-slug=")(.*?)(?=")/g);
     const ids = result.match(/(?<=data-film-id=")(.*?)(?=")/g);
@@ -44,6 +45,7 @@ const diary = getDiary().then((res) => {
         pfp: pfp,
         titles: removeDuplicates(titles),
         years: years,
+        ratings: ratings,
         posters: removeDuplicates(posters),
         slugs: removeDuplicates(slugs),
     }
@@ -54,6 +56,7 @@ diary.then((res) => {
     const username = res.username;
     const pfp = res.pfp;
     const titles = res.titles;
+    const ratings = res.ratings;
 
     registerFont('./public/fonts/CourierPrime-Bold.ttf', {
         family: 'Courier',
@@ -66,6 +69,8 @@ diary.then((res) => {
 
         const recent = res_[0];
         const recentTitle = titles[0] + ' (' + res.years[0] + ')';
+
+        const rating = ratings[0];
 
         ctx.font = 'bold 50px Courier';
         ctx.fillStyle = '#808080';
@@ -98,6 +103,10 @@ diary.then((res) => {
         ctx.fillText(title, 350, 75 + wrappedDegree * 25);
 
         const posterY = 95 + (wrappedDegree * 25);
+
+        ctx.font = 'bold 15px serif';
+        ctx.fillStyle = '#808080';
+        ctx.fillText(rating, 350, posterY + 205);
 
         loadImage(pfp).then((pfpImage) => {
             ctx.drawImage(pfpImage, 35, 65, 100, 100);
