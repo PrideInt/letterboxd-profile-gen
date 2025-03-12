@@ -1,8 +1,17 @@
 const axios = require('axios');
 const fs = require('fs');
+const puppeteer = require('puppeteer');
+
 const { createCanvas, loadImage, registerFont } = require('canvas');
+const { scrollPageToBottom } = require('puppeteer-autoscroll-down');
+
 require('dotenv').config();
 
+/** 
+ * @deprecated
+ * 
+ * OLD; does not update DOM 
+ */
 const getDiary = async () => {
     try {
         const response = await axios.get('https://letterboxd.com/pridelightbourn/films/diary/');
@@ -12,7 +21,29 @@ const getDiary = async () => {
     }
 };
 
-const diary = getDiary().then((res) => {
+/** Updated DOM using Puppeteer */
+const getRenderedDiary = async () => {
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    await page.goto('https://letterboxd.com/pridelightbourn/films/diary/');
+
+    let isLoadingAvailable = true;
+
+    while (isLoadingAvailable) {
+        await scrollPageToBottom(page, { size: 500 });
+        await page.waitForFunction('document.querySelector("img[srcset]")');
+
+        isLoadingAvailable = false;
+    }
+    const rendered = await page.content();
+
+    await browser.close();
+
+    return rendered;
+};
+
+const diary = getRenderedDiary().then((res) => {
     const result = JSON.parse(JSON.stringify(res));
 
     const username = result.match(/<img src=".*?avatar.*?".*?>/g)[0].match(/(?<=alt=")(.*?)(?=")/g)[0];
@@ -20,11 +51,27 @@ const diary = getDiary().then((res) => {
 
     const titles = result.match(/(?<=data-film-name=")(.*?)(?=")/g);
     const years = result.match(/(?<=<td class="td-released center"><span>)(.*?)(?=<\/span>)/g);
-    const ratings = result.match(/(?<=class="rating rated-)(.*?)(?=<\/span>)/g).map((rating) => rating.replace(rating.substring(0, rating.indexOf(' ')), '').replace(' ', ''));
+    // const ratings = result.match(/(?<=<td class="td-rating rating-green">)(.*?)(?=<\/span>)/g).map((rating) => rating.replace(rating.substring(0, rating.indexOf(' ')), '').replace(' ', ''));
+    const ratings = result.match(/(?<=<td class="td-rating rating-green">)(.*?)(?=<\/span>)/g);
+
+    for (let i = 0; i < ratings.length; i++) {
+        let idx = ratings[i].length - 1;
+        while (true) {
+            if (ratings[i].charAt(idx) !== '>') {
+                --idx;
+            } else {
+                break;
+            }
+        }
+        ratings[i] = ratings[i].substring(idx + 1, ratings[i].length);
+    }
 
     const slugs = result.match(/(?<=data-film-slug=")(.*?)(?=")/g);
     const ids = result.match(/(?<=data-film-id=")(.*?)(?=")/g);
 
+    const posters = result.match(/(?<=srcset=")(.*?)(?=")/g).map((poster) => poster.replace('0-70-0-105', '0-1000-0-1500'));
+
+    /*
     const posters = [];
 
     for (let i = 0; i < ids.length; i++) {
@@ -39,6 +86,7 @@ const diary = getDiary().then((res) => {
 
         posters.push(poster);
     }
+    */
 
     const data = {
         username: username,
@@ -63,7 +111,6 @@ diary.then((res) => {
     });
 
     validatePosters(res.slugs, res.posters).then((res_) => {
-        // TODO: do whatever we want now
         const canvas = createCanvas(700, 375);
         const ctx = canvas.getContext('2d');
 
@@ -125,11 +172,17 @@ diary.then((res) => {
 /**
  * Functions
  */
-
 const removeDuplicates = (arr) => {
     return [...new Set(arr)];
 };
 
+/**
+ * Failsafe if Letterboxd posters don't render
+ * 
+ * @param {*} slugs 
+ * @param {*} posters 
+ * @returns 
+ */
 const validatePosters = async (slugs, posters) => {
     const posters_ = [];
 
