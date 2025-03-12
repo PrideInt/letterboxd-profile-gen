@@ -23,7 +23,7 @@ const getDiary = async () => {
 
 /** Updated DOM using Puppeteer */
 const getRenderedDiary = async () => {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'], ignoreDefaultArgs: ['--disable-extensions']});
     const page = await browser.newPage();
 
     await page.goto('https://letterboxd.com/pridelightbourn/films/diary/');
