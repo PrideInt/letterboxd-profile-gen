@@ -63,7 +63,7 @@ const diary = getRenderedDiary().then((res) => {
                 break;
             }
         }
-        ratings[i] = ratings[i].substring(idx + 1, ratings[i].length);
+        ratings[i] = ratings[i].substring(idx + 1, ratings[i].length).replace(' ', '');
     }
 
     const slugs = result.match(/(?<=data-film-slug=")(.*?)(?=")/g);
