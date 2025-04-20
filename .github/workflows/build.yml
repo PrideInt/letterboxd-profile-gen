@@ -37,4 +37,4 @@ jobs:
           git config --global user.email 20098992+PrideInt@users.noreply.github.com
           git add -A
           git commit -m "generate image"
-          git push
+          git push --force
