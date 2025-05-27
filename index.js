@@ -49,7 +49,7 @@ const diary = getRenderedDiary().then((res) => {
     const username = result.match(/<img src=".*?avatar.*?".*?>/g)[0].match(/(?<=alt=")(.*?)(?=")/g)[0];
     const pfp = result.match(/(?<=<img src=")(.*?)(?=")/g).filter((avatar) => avatar.includes('avatar'))[0].replace('0-48-0-48', '0-220-0-220');
 
-    const titles = result.match(/(?<=data-film-name=")(.*?)(?=")/g);
+    const titles = validateTitles(result.match(/(?<=data-film-name=")(.*?)(?=")/g));
     const years = result.match(/(?<=<td class="td-released center"><span>)(.*?)(?=<\/span>)/g);
     // const ratings = result.match(/(?<=<td class="td-rating rating-green">)(.*?)(?=<\/span>)/g).map((rating) => rating.replace(rating.substring(0, rating.indexOf(' ')), '').replace(' ', ''));
     const ratings = result.match(/(?<=<td class="td-rating rating-green">)(.*?)(?=<\/span>)/g);
@@ -201,6 +201,24 @@ const validatePosters = async (slugs, posters) => {
         });
     }
     return posters_;
+}
+
+const validateTitles = (titles) => {
+    const titles_ = [];
+
+    for (let i = 0; i < titles.length; i++) {
+        let title = titles[i];
+
+        /**
+         * Letterboxd sometimes returns titles with HTML entities
+         * This replaces them with their actual characters
+         */
+        if (titles[i].includes('&#39;') || titles[i].includes('&amp;')) {
+            title = titles[i].replace('&amp;', '&').replace('&#39;', '\'');
+        }
+        titles_[i] = title;
+    }
+    return titles_;
 }
 
 const getTMDBPoster = async (title) => {
