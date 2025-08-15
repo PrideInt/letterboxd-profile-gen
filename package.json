@@ -21,7 +21,7 @@
     "axios": "^1.7.9",
     "canvas": "^3.1.0",
     "dotenv": "^16.6.1",
-    "puppeteer": "^24.16.1",
+    "puppeteer": "^24.16.2",
     "puppeteer-autoscroll-down": "^2.0.0"
   }
 }
