@@ -49,7 +49,7 @@ const diary = getRenderedDiary().then((res) => {
     const username = result.match(/<img src=".*?avatar.*?".*?>/g)[0].match(/(?<=alt=")(.*?)(?=")/g)[0];
     const pfp = result.match(/(?<=<img src=")(.*?)(?=")/g).filter((avatar) => avatar.includes('avatar'))[0].replace('0-48-0-48', '0-220-0-220');
 
-    const titles = validateTitles(result.match(/(?<=data-film-name=")(.*?)(?=")/g));
+    const titles = validateTitles(result.match(/(?<=<h2 class="name -primary prettify"><a href=")(.*?)(?=<\/a>)/g).map((title) => title.substring(title.indexOf('>') + 1)));
     const years = result.match(/(?<=<td class="col-releaseyear _aligncenter"><span>)(.*?)(?=<\/span>)/g);
     // const ratings = result.match(/(?<=<td class="td-rating rating-green">)(.*?)(?=<\/span>)/g).map((rating) => rating.replace(rating.substring(0, rating.indexOf(' ')), '').replace(' ', ''));
     const ratings = result.match(/(?<=<td class="col-rating _paddinginlinelg">)(.*?)(?=<\/span>)/g);
