@@ -1,6 +1,7 @@
 const axios = require('axios');
 const fs = require('fs');
 const puppeteer = require('puppeteer');
+const { connect } = require("puppeteer-real-browser");
 
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const { scrollPageToBottom } = require('puppeteer-autoscroll-down');
@@ -23,8 +24,15 @@ const getDiary = async () => {
 
 /** Updated DOM using Puppeteer */
 const getRenderedDiary = async () => {
-    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'], ignoreDefaultArgs: ['--disable-extensions'], headless: false });
-    const page = await browser.newPage();
+    const { browser, page } = await connect({
+        headless: false,
+        args: [],
+        customConfig: {},
+        turnstile: true,
+        connectOption: {},
+        disableXvfb: false,
+        ignoreAllFlags: false,
+    });
 
     await page.goto('https://letterboxd.com/pridelightbourn/diary/');
 

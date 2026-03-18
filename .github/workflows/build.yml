@@ -31,6 +31,7 @@ jobs:
           npm install dotenv
           npm install puppeteer
           npm install puppeteer-autoscroll-down
+          npm install puppeteer-real-browser
           node index.js
           git config --global --add safe.directory /__w/letterboxd-profile-gen/letterboxd-profile-gen
           git config --global user.name PrideInt
