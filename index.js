@@ -14,7 +14,7 @@ require('dotenv').config();
  */
 const getDiary = async () => {
     try {
-        const response = await axios.get('https://letterboxd.com/pridelightbourn/films/diary/');
+        const response = await axios.get('https://letterboxd.com/pridelightbourn/diary/');
         return response.data;
     } catch (error) {
         console.error(error);
@@ -23,10 +23,10 @@ const getDiary = async () => {
 
 /** Updated DOM using Puppeteer */
 const getRenderedDiary = async () => {
-    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'], ignoreDefaultArgs: ['--disable-extensions']});
+    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'], ignoreDefaultArgs: ['--disable-extensions'], headless: false });
     const page = await browser.newPage();
 
-    await page.goto('https://letterboxd.com/pridelightbourn/films/diary/');
+    await page.goto('https://letterboxd.com/pridelightbourn/diary/');
 
     let isLoadingAvailable = true;
 
@@ -49,11 +49,12 @@ const diary = getRenderedDiary().then((res) => {
     const username = result.match(/<img src=".*?avatar.*?".*?>/g)[0].match(/(?<=alt=")(.*?)(?=")/g)[0];
     const pfp = result.match(/(?<=<img src=")(.*?)(?=")/g).filter((avatar) => avatar.includes('avatar'))[0].replace('0-48-0-48', '0-220-0-220');
 
-    const titles = validateTitles(result.match(/(?<=<h2 class="name -primary prettify"><a href=")(.*?)(?=<\/a>)/g).map((title) => title.substring(title.indexOf('>') + 1)));
-    const years = result.match(/(?<=<td class="col-releaseyear _aligncenter"><span>)(.*?)(?=<\/span>)/g);
+    const titles = validateTitles(result.match(/(?<=<h2 class="primaryname prettify"><a href=")(.*?)(?=<\/a>)/g).map((title) => title.substring(title.indexOf('>') + 1)));
+    const years = result.match(/(?<=<td class="col-releaseyear -align-center"><span>)(.*?)(?=<\/span>)/g);
     // const ratings = result.match(/(?<=<td class="td-rating rating-green">)(.*?)(?=<\/span>)/g).map((rating) => rating.replace(rating.substring(0, rating.indexOf(' ')), '').replace(' ', ''));
-    const ratings = result.match(/(?<=<td class="col-rating _paddinginlinelg">)(.*?)(?=<\/span>)/g);
+    const ratings = result.match(/(?<=<div class="hide-for-owner" data-owner="pridelightbourn">)(.*?)(?=<\/span>)/g).map((rating) => rating.substring(rating.indexOf('>') + 1).replace(' ', ''));
 
+    /*
     for (let i = 0; i < ratings.length; i++) {
         let idx = ratings[i].length - 1;
         while (true) {
@@ -65,6 +66,7 @@ const diary = getRenderedDiary().then((res) => {
         }
         ratings[i] = ratings[i].substring(idx + 1, ratings[i].length).replace(' ', '');
     }
+    */
 
     const slugs = result.match(/(?<=data-film-slug=")(.*?)(?=")/g);
     const ids = result.match(/(?<=data-film-id=")(.*?)(?=")/g);
