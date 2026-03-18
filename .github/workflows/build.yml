@@ -24,7 +24,10 @@ jobs:
         run: |
           apt update
           apt-get install -y libnspr4 libnss3 libdbus-1-3 libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libc6 libcairo2 libcups2 libdrm2 libexpat1 libgbm1 libglib2.0-0 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libudev1 libuuid1 libx11-6 libx11-xcb1 libxcb-dri3-0 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxkbcommon0 libxrandr2 libxrender1 libxshmfence1 libxss1 libxtst6 xvfb
-
+        env:
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true' 
+          CI: 'true'
+          
       - run: |
           node --version
           npm --version
