@@ -35,7 +35,7 @@ jobs:
           npm install puppeteer
           npm install puppeteer-autoscroll-down
           npm install puppeteer-real-browser
-          node index.js
+          xvfb-run --auto-servernum node index.js
           git config --global --add safe.directory /__w/letterboxd-profile-gen/letterboxd-profile-gen
           git config --global user.name PrideInt
           git config --global user.email 20098992+PrideInt@users.noreply.github.com
