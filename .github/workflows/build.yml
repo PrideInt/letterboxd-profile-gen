@@ -35,6 +35,8 @@ jobs:
           chrome-version: stable
           
       - name: Run index.js
+        env:
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: |
           node --version
           npm --version
