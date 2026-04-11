@@ -49,5 +49,5 @@ jobs:
           git add -A
           git commit -m "generate image"
           git push --force
-        env:
+      - env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
