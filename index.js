@@ -104,7 +104,7 @@ const diary = getRenderedDiary().then((res) => {
         titles: removeDuplicates(titles),
         years: years,
         ratings: ratings,
-        posters: removeDuplicates(posters),
+        posters: posters,
         slugs: removeDuplicates(slugs),
     }
     return data;
