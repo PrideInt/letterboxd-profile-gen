@@ -175,7 +175,7 @@ diary.then((res) => {
         family: 'Courier',
     });
 
-    validatePosters(res.slugs, res.posters).then((res_) => {
+    validatePosters(res.titles, res.years, res.posters).then((res_) => {
         const canvas = createCanvas(700, 375);
         const ctx = canvas.getContext('2d');
 
