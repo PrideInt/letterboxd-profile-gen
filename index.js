@@ -59,6 +59,8 @@ const diary = getRenderedDiary().then((res) => {
     const username = result.match(/<img src=".*?avatar.*?".*?>/g)[0].match(/(?<=alt=")(.*?)(?=")/g)[0];
     const pfp = result.match(/(?<=<img src=")(.*?)(?=")/g).filter((avatar) => avatar.includes('avatar'))[0].replace('0-48-0-48', '0-220-0-220');
 
+    /*
+    
     const titles = validateTitles(
         [...result.matchAll(/data-item-name="([^"]*)"/g)].map((m) => m[1])
     );
@@ -72,6 +74,8 @@ const diary = getRenderedDiary().then((res) => {
         "g"
     );
     const ratings = result.match(ratingsRegex).map((rating) => rating.substring(rating.indexOf('>') + 1).replace(' ', ''));
+    
+    */
 
     /*
     for (let i = 0; i < ratings.length; i++) {
@@ -87,8 +91,12 @@ const diary = getRenderedDiary().then((res) => {
     }
     */
 
+    /*
+    
     const slugs = result.match(/(?<=data-film-slug=")(.*?)(?=")/g);
     const ids = result.match(/(?<=data-film-id=")(.*?)(?=")/g);
+
+    */
 
     /*
     const posters = [];
@@ -107,15 +115,45 @@ const diary = getRenderedDiary().then((res) => {
     }
     */
 
+    const decodeEntities = (str) => str
+            .replace(/&quot;/g, '"')
+            .replace(/&#0?39;/g, "'")
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&');
+    
+    const films = result
+        .split('data-component-class="LazyPoster"')
+        .slice(1)
+        .map((chunk) => {
+            const rawTitle = chunk.match(/data-item-name="([^"]*)"/)?.[1];
+            const title = rawTitle ? decodeEntities(rawTitle) : null;
+            const slug = chunk.match(/data-item-slug="([^"]*)"/)?.[1] ?? null;
+            const year = title?.match(/\((\d{4})\)$/)?.[1] ?? null;
+        
+            const rawPoster = chunk.match(/srcset="([^\s"]+)/)?.[1] ?? chunk.match(/<img[^>]*\ssrc="([^"]+)"/)?.[1];
+            const poster = rawPoster && !rawPoster.includes('empty-poster')
+                ? rawPoster.replace(/-0-\d+-0-\d+-crop/, '-0-1000-0-1500-crop')
+                : null;
+        
+            const rated = Number(chunk.match(/rated-(\d+)/)?.[1]);
+            const rating = rated ? '★'.repeat(Math.floor(rated / 2)) + (rated % 2 ? '½' : '') : null;
+        
+            return { title, slug, year, poster, rating };
+        })
+        .filter((film) => film.slug);
+    
+    const uniqueFilms = [...new Map(films.map((film) => [film.slug, film])).values()];
+    
     const data = {
         username: username,
         pfp: pfp,
-        titles: removeDuplicates(titles),
-        years: years,
-        ratings: ratings,
-        posters: posters,
-        slugs: removeDuplicates(slugs),
-    }
+        titles: uniqueFilms.map((film) => film.title),
+        years: uniqueFilms.map((film) => film.year),
+        ratings: uniqueFilms.map((film) => film.rating),
+        posters: uniqueFilms.map((film) => film.poster),
+        slugs: uniqueFilms.map((film) => film.slug),
+    };
     return data;
 });
 
