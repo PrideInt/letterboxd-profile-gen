@@ -35,21 +35,28 @@ const getRenderedDiary = async () => {
         disableXvfb: false,
         ignoreAllFlags: false,
     });
-
+ 
     await page.goto(`https://letterboxd.com/${letterboxdUser}/diary/`);
-
-    let isLoadingAvailable = true;
-
-    while (isLoadingAvailable) {
-        await scrollPageToBottom(page, { size: 500 });
-        await page.waitForFunction('document.querySelector("img[srcset]")');
-
-        isLoadingAvailable = false;
-    }
+ 
+    await page.evaluate(async () => {
+        const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+ 
+        for (const el of document.querySelectorAll('div[data-component-class="LazyPoster"]')) {
+            el.scrollIntoView({ block: 'center' });
+            await delay(150);
+        }
+    });
+ 
+    await page.waitForFunction(
+        () => [...document.querySelectorAll('div[data-component-class="LazyPoster"] img.image')]
+            .every((img) => !img.src.includes('empty-poster')),
+        { timeout: 15000 }
+    ).catch(() => console.warn('Some posters did not load in time; falling back to TMDB for those.'));
+ 
     const rendered = await page.content();
-
+ 
     await browser.close();
-
+ 
     return rendered;
 };
 
@@ -127,9 +134,10 @@ const diary = getRenderedDiary().then((res) => {
         .slice(1)
         .map((chunk) => {
             const rawTitle = chunk.match(/data-item-name="([^"]*)"/)?.[1];
-            const title = rawTitle ? decodeEntities(rawTitle) : null;
+            const fullTitle = rawTitle ? decodeEntities(rawTitle) : null;
+            const year = fullTitle?.match(/\((\d{4})\)$/)?.[1] ?? null;
+            const title = fullTitle?.replace(/\s*\(\d{4}\)$/, '') ?? null;
             const slug = chunk.match(/data-item-slug="([^"]*)"/)?.[1] ?? null;
-            const year = title?.match(/\((\d{4})\)$/)?.[1] ?? null;
         
             const rawPoster = chunk.match(/srcset="([^\s"]+)/)?.[1] ?? chunk.match(/<img[^>]*\ssrc="([^"]+)"/)?.[1];
             const poster = rawPoster && !rawPoster.includes('empty-poster')
@@ -210,7 +218,7 @@ diary.then((res) => {
 
         ctx.font = 'bold 15px serif';
         ctx.fillStyle = '#808080';
-        ctx.fillText(rating, 350, posterY + 205);
+        ctx.fillText(rating ?? '☰', 350, posterY + 205);
 
         loadImage(pfp).then((pfpImage) => {
             ctx.drawImage(pfpImage, 35, 65, 100, 100);
@@ -240,24 +248,22 @@ const removeDuplicates = (arr) => {
  * @param {*} posters 
  * @returns 
  */
-const validatePosters = async (slugs, posters) => {
-    const posters_ = [];
-
-    for (let i = 0; i < posters.length; i++) {
-        posters_[i] = posters[i];
-
-        await axios.get(posters[i]).then((res) => {}).catch((err) => {
-            if (err.response.status === 404 || err.response.status === 403) {
-
-                getTMDBPoster(slugs[i]).then((res) => {
-                    if (res !== null) {
-                        posters_[i] = res;
-                    }
-                });
+const validatePosters = async (titles, years, posters) => {
+    return Promise.all(posters.map(async (poster, i) => {
+        if (poster) {
+            try {
+                await axios.head(poster);
+                return poster;
+            } catch (err) {
+                const status = err.response?.status;
+ 
+                if (status && status !== 404 && status !== 403) {
+                    return poster;
+                }
             }
-        });
-    }
-    return posters_;
+        }
+        return (await getTMDBPoster(titles[i], years[i])) ?? poster;
+    }));
 }
 
 const validateTitles = (titles) => {
@@ -278,17 +284,22 @@ const validateTitles = (titles) => {
     return titles_;
 }
 
-const getTMDBPoster = async (title) => {
+const getTMDBPoster = async (title, year) => {
+    if (!title) return null;
+ 
     try {
         const options = {
             method: 'GET',
-            url: `https://api.themoviedb.org/3/search/movie?query=${title}`,
+            url: 'https://api.themoviedb.org/3/search/movie',
+            params: year ? { query: title, year } : { query: title },
             headers: { accept: 'application/json', Authorization: 'Bearer ' + process.env.TMDB_API_KEY }
         };
         const response = await axios.request(options);
-
-        if (response.data['results'].length > 0) {
-            return `https://image.tmdb.org/t/p/original${response.data['results'][0]['poster_path']}`
+ 
+        const match = response.data.results.find((result) => result.poster_path);
+ 
+        if (match) {
+            return `https://image.tmdb.org/t/p/original${match.poster_path}`
         }
         return null;
     } catch (error) {
