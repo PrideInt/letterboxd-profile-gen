@@ -175,63 +175,61 @@ diary.then((res) => {
         family: 'Courier',
     });
 
-    validatePosters(res.titles, res.years, res.posters).then((res_) => {
-        const canvas = createCanvas(700, 375);
-        const ctx = canvas.getContext('2d');
+    const canvas = createCanvas(700, 375);
+    const ctx = canvas.getContext('2d');
 
-        const recent = res_[0];
-        const recentTitle = titles[0] + ' (' + res.years[0] + ')';
+    const recent = res.posters[0];
+    const recentTitle = titles[0] + ' (' + res.years[0] + ')';
 
-        const rating = ratings[0];
+    const rating = ratings[0];
 
-        ctx.font = 'bold 50px Courier';
-        ctx.fillStyle = '#808080';
-        ctx.fillText(username, 35, 50);
+    ctx.font = 'bold 50px Courier';
+    ctx.fillStyle = '#808080';
+    ctx.fillText(username, 35, 50);
 
-        ctx.font = 'bold 20px Courier';
-        ctx.fillStyle = '#808080';
-        ctx.fillText('just recently watched: ', 35, 200);
+    ctx.font = 'bold 20px Courier';
+    ctx.fillStyle = '#808080';
+    ctx.fillText('just recently watched: ', 35, 200);
 
-        ctx.font = 'bold 20px Courier';
-        ctx.fillStyle = '#808080';
+    ctx.font = 'bold 20px Courier';
+    ctx.fillStyle = '#808080';
 
-        let wrappedDegree = 0;
+    let wrappedDegree = 0;
 
-        const words = recentTitle.split(' ');
+    const words = recentTitle.split(' ');
 
-        let title = '';
+    let title = '';
 
-        for (let i = 0; i < words.length; i++) {
-            const word = words[i];
+    for (let i = 0; i < words.length; i++) {
+        const word = words[i];
 
-            if (title.length + word.length <= 25) {
-                title += word + ' ';
-            } else {
-                ctx.fillText(title, 350, 75 + wrappedDegree * 25);
-                title = word + ' ';
-                wrappedDegree++;
-            }
+        if (title.length + word.length <= 25) {
+            title += word + ' ';
+        } else {
+            ctx.fillText(title, 350, 75 + wrappedDegree * 25);
+            title = word + ' ';
+            wrappedDegree++;
         }
-        ctx.fillText(title, 350, 75 + wrappedDegree * 25);
+    }
+    ctx.fillText(title, 350, 75 + wrappedDegree * 25);
 
-        const posterY = 95 + (wrappedDegree * 25);
+    const posterY = 95 + (wrappedDegree * 25);
 
-        ctx.font = 'bold 15px serif';
-        ctx.fillStyle = '#808080';
-        ctx.fillText(rating ?? '☰', 350, posterY + 205);
+    ctx.font = 'bold 15px serif';
+    ctx.fillStyle = '#808080';
+    ctx.fillText(rating ?? '☰', 350, posterY + 205);
 
-        loadImage(pfp).then((pfpImage) => {
-            ctx.drawImage(pfpImage, 35, 65, 100, 100);
+    loadImage(pfp).then((pfpImage) => {
+        ctx.drawImage(pfpImage, 35, 65, 100, 100);
 
-            loadImage(recent).then((posterImage) => {
-                ctx.drawImage(posterImage, 350, posterY, 125, 187.5);
+        loadImage(recent).then((posterImage) => {
+            ctx.drawImage(posterImage, 350, posterY, 125, 187.5);
 
-                const buffer = canvas.toBuffer('image/png');
-                fs.writeFileSync('recent.png', buffer);
-            }).catch((err) => console.error(err));
-
+            const buffer = canvas.toBuffer('image/png');
+            fs.writeFileSync('recent.png', buffer);
         }).catch((err) => console.error(err));
-    });
+
+    }).catch((err) => console.error(err));
 });
 
 /**
