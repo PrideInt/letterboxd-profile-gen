@@ -59,7 +59,12 @@ const diary = getRenderedDiary().then((res) => {
     const username = result.match(/<img src=".*?avatar.*?".*?>/g)[0].match(/(?<=alt=")(.*?)(?=")/g)[0];
     const pfp = result.match(/(?<=<img src=")(.*?)(?=")/g).filter((avatar) => avatar.includes('avatar'))[0].replace('0-48-0-48', '0-220-0-220');
 
-    const titles = validateTitles(result.match(/(?<=<h2 class="primaryname prettify"><a href=")(.*?)(?=<\/a>)/g).map((title) => title.substring(title.indexOf('>') + 1)));
+    const titles = validateTitles(
+        [...result.matchAll(/data-item-name="([^"]*)"/g)].map((m) => m[1])
+    );
+    const posters = [...result.matchAll(/srcset="([^\s"]+)/g)].map((m) =>
+        m[1].replace('0-70-0-105', '0-1000-0-1500')
+    );
     const years = result.match(/(?<=<td class="col-releaseyear -align-center"><span>)(.*?)(?=<\/span>)/g);
     // const ratings = result.match(/(?<=<td class="td-rating rating-green">)(.*?)(?=<\/span>)/g).map((rating) => rating.replace(rating.substring(0, rating.indexOf(' ')), '').replace(' ', ''));
     const ratingsRegex = new RegExp(
@@ -84,8 +89,6 @@ const diary = getRenderedDiary().then((res) => {
 
     const slugs = result.match(/(?<=data-film-slug=")(.*?)(?=")/g);
     const ids = result.match(/(?<=data-film-id=")(.*?)(?=")/g);
-
-    const posters = result.match(/(?<=srcset=")(.*?)(?=")/g).map((poster) => poster.replace('0-70-0-105', '0-1000-0-1500'));
 
     /*
     const posters = [];
