@@ -2,6 +2,7 @@ name: CI
 
 env:
   TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+  LETTERBOXD_USER: pridelightbourn
 
 on:
   push:
