@@ -8,6 +8,8 @@ const { scrollPageToBottom } = require('puppeteer-autoscroll-down');
 
 require('dotenv').config();
 
+const letterboxdUser = process.env.LETTERBOXD_USER;
+
 /** 
  * @deprecated
  * 
@@ -15,7 +17,7 @@ require('dotenv').config();
  */
 const getDiary = async () => {
     try {
-        const response = await axios.get('https://letterboxd.com/pridelightbourn/diary/');
+        const response = await axios.get(`https://letterboxd.com/${letterboxdUser}/diary/`);
         return response.data;
     } catch (error) {
         console.error(error);
@@ -34,7 +36,7 @@ const getRenderedDiary = async () => {
         ignoreAllFlags: false,
     });
 
-    await page.goto('https://letterboxd.com/pridelightbourn/diary/');
+    await page.goto(`https://letterboxd.com/${letterboxdUser}/diary/`);
 
     let isLoadingAvailable = true;
 
@@ -60,7 +62,11 @@ const diary = getRenderedDiary().then((res) => {
     const titles = validateTitles(result.match(/(?<=<h2 class="primaryname prettify"><a href=")(.*?)(?=<\/a>)/g).map((title) => title.substring(title.indexOf('>') + 1)));
     const years = result.match(/(?<=<td class="col-releaseyear -align-center"><span>)(.*?)(?=<\/span>)/g);
     // const ratings = result.match(/(?<=<td class="td-rating rating-green">)(.*?)(?=<\/span>)/g).map((rating) => rating.replace(rating.substring(0, rating.indexOf(' ')), '').replace(' ', ''));
-    const ratings = result.match(/(?<=<div class="hide-for-owner" data-owner="pridelightbourn">)(.*?)(?=<\/span>)/g).map((rating) => rating.substring(rating.indexOf('>') + 1).replace(' ', ''));
+    const ratingsRegex = new RegExp(
+        `(?<=<div class="hide-for-owner" data-owner="${letterboxdUser}">)(.*?)(?=</span>)`,
+        "g"
+    );
+    const ratings = result.match(ratingsRegex).map((rating) => rating.substring(rating.indexOf('>') + 1).replace(' ', ''));
 
     /*
     for (let i = 0; i < ratings.length; i++) {
