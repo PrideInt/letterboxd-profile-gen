@@ -19,5 +19,5 @@ The output results in this:
 
 Anyone can fork this repository and render their own Letterboxd profile! In order to do so:
 - You need to add a GitHub Actions secret named `TMDB_API_KEY` with your TMDB API key.
-- Replace the username located on line 8 in `index.js` with your own.
+- In the `build.yml` file located in `.github/workflows`, edit the `LETTERBOXD_USER` environmental variable with your own Letterboxd username.
 - Boom!
